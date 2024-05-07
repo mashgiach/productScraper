@@ -8,13 +8,14 @@ from product import create_product
 import time
 
 
-def scrape(index):
+def scrape(index, type):
     df = pd.read_csv('./products.csv')
     df.columns = df.columns.str.strip()
 
     product_info = {
         "name": df.loc[index, 'txt_title'].strip(),
-        "category": df.loc[index, 'catalog_num']
+        "category": df.loc[index, 'catalog_num'],
+        "id": df.loc[index, 'cs']
     }
 
     base_url = 'http://www.magickingdom.co.il/'
@@ -24,9 +25,17 @@ def scrape(index):
     headers = {
         'User-Agent': 'Mozilla/5.0'
     }
-
+    response = None
     # Fetch product page
-    response = requests.get(product_url, headers=headers)
+    if type=="normal":
+        response = requests.get(product_url, headers=headers)
+    # print(f"{base_url}index.php?dir=site&page=catalog&op=item&cs={product_info['id']}")
+    elif type=="special":
+        response = requests.get(
+            f"{base_url}index.php?dir=site&page=catalog&op=item&cs={product_info['id']}",
+            headers=headers
+        )
+    
 
     soup = BeautifulSoup(response.content, 'html.parser')
     description_div = soup.find('div', class_='product-item-description__text')
